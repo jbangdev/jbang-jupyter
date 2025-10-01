@@ -16,25 +16,26 @@ This repo provides a working kernel launcher and sample configuration. Expect it
 
 == Requirements
 
-- `mvn install` of main of https://github.com/dflib/jjava
-- Java 17+ (in future it will be auto installed if not present)
-- JBang
-- Jupyter (Notebook, Lab, or Console)
+- JBang (https://jbang.dev)
 
 == Quickstart
-
-. Clone and build
-----
-mvn install
-----
 
 . Install as a Jupyter kernelspec
 
 You can use https://github.com/jupyter-java install-kernel script to install this kernel.
 
+This will install the default kernel to the default location.
+
 [source,bash]
 ----
-jbang install-kernel@jupyter-java --script-ref=dev.jbang:jbang-jupyter:0.1.0-SNAPSHOT jbang
+jbang install-kernel@jupyter-java jbang
+----
+
+This will install the kernel from your local built version.
+
+[source,bash]
+----
+jbang install-kernel@jupyter-java --script-ref=dev.jbang:jbang-jupyter:0.1.0-SNAPSHOT:fatjar@fatjar jbang
 ----
 
 This will print out where it installed the kernel. You can manually tweak the `kernel.json` if needed.
