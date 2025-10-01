@@ -1,0 +1,48 @@
+= JBang Jupyter Kernel
+
+Unleash the power of Java in Jupyter notebooks. 
+
+This project packages a Java Jupyter kernel powered by `org.dflib.jjava:jjava-kernel` and embraces the JBang ethos: fast starts, simple dependency management, and a great developer experience.
+
+== Why
+
+- Easy dependency management with Maven coordinates and JBang-friendly conventions
+- Modern Java experience in Jupyter (Java 17+)
+- Built on `jjava-kernel` for robust protocol handling, with room for JBang niceties
+
+== Status
+
+This repo provides a working kernel launcher and sample configuration. Expect iteration as we smooth the developer and user experience.
+
+== Requirements
+
+- `mvn install` of main of https://github.com/dflib/jjava
+- Java 17+ (in future it will be auto installed if not present)
+- JBang
+- Jupyter (Notebook, Lab, or Console)
+
+== Quickstart
+
+. Clone and build
+----
+mvn install
+----
+
+. Install as a Jupyter kernelspec
+
+You can use https://github.com/jupyter-java install-kernel script to install this kernel.
+
+[source,bash]
+----
+jbang install-kernel@jupyter-java --script-ref=dev.jbang:jbang-jupyter:0.1.0-SNAPSHOT jbang
+----
+
+This will print out where it installed the kernel. You can manually tweak the `kernel.json` if needed.
+i.e. if you want to attach a debugger to the kernel add `--debug=suspend=n`
+
+== How it works (high level)
+
+- Jupyter launches the kernel process with a connection file
+- `Main` parses the connection, creates `JBangKernel`, and attaches sockets
+- `jjava-kernel` handles the wire protocol; we focus on Java UX and JBang-style behavior
+
