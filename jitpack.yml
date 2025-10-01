@@ -10,4 +10,4 @@ install:
 # you could technically just run mvn install directly
 # put just showing mise x as an option where you can
 # configure additional jdks.
-  - ~/.local/bin/mise x -- mvn -Pjitpackinstall -B -ntp -DskipTests
+  - ~/.local/bin/mise x -- mvn -Pjitpack install -B -ntp -DskipTests
