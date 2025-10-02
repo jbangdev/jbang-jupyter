@@ -1,0 +1,32 @@
+project:
+  name: jbang-jupyter
+  description: Jupyter kernel for Java w/JBang
+  longDescription: Jupyter kernel for Java w/JBang
+  links:
+    homepage: https://github.com/jbangdev/jbang-jupyter
+  authors:
+    - Max Rydahl Andersen
+  license: MIT
+  inceptionYear: 2025
+  stereotype: CLI
+  languages:
+    java:
+      version: 17
+      groupId: dev.jbang
+      artifactId: jbang-jupyter
+      mainClass: dev.jbang.jupyter.Main
+
+release:
+  github:
+    overwrite: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+
+distributions:
+  jbang-jupyter:
+    type: SINGLE_JAR
+    artifacts:
+      - path: target/{{distributionName}}-{{projectVersion}}.jar
