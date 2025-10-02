@@ -147,7 +147,7 @@
             <dependencies>
                 <dependency>
                     <groupId>com.github.maxandersen</groupId>
-                    <artifactId>jjava</artifactId>
+                    <artifactId>jjava-kernel</artifactId>
                     <version>jitpack-SNAPSHOT</version>
                 </dependency>
             </dependencies>
