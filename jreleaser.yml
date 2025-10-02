@@ -29,4 +29,4 @@ distributions:
   jbang-jupyter:
     type: SINGLE_JAR
     artifacts:
-      - path: target/{{distributionName}}-{{projectVersion}}.jar
+      - path: target/{{distributionName}}-{{projectVersion}}-fatjar.jar
