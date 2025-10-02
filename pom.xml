@@ -146,7 +146,7 @@
             </repositories>
             <dependencies>
                 <dependency>
-                    <groupId>com.github.maxandersen</groupId>
+                    <groupId>com.github.maxandersen.jjava</groupId>
                     <artifactId>jjava-kernel</artifactId>
                     <version>jitpack-SNAPSHOT</version>
                 </dependency>
