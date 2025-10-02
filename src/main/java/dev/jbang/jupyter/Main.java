@@ -50,7 +50,8 @@ public class Main {
                 //.extraClasspath(Env.extraClasspath())
                 .timeout(System.getenv("JBANG_KERNEL_TIMEOUT"))
 
-               //TBD probably should be there but overlaps somewhat with //SOURCES  .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
+               .lineMagic("load", new org.dflib.jjava.kernel.magics.LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
+
                 // these classpath operations might be interesting to have with same names...but passthrough jbang for consistency...
 
                // .lineMagic("classpath", new ClasspathMagic())
