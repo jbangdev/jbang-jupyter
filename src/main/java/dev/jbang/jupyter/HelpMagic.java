@@ -22,11 +22,17 @@ public class HelpMagic implements LineMagic<Void, JavaKernel> {
 
         String jbangExecutable = JBangHelper.findJBangExecutable();
         if (jbangExecutable == null) {
-            help =help +"\n\nJBang executable not found in $JBANG_HOME, $PATH, or ~/.jbang/bin. Please install JBang.";
+            help =help +"JBang executable not found in $JBANG_HOME, $PATH, or ~/.jbang/bin. Please install JBang.";
          } else {
-            help = help +"\n\nJBang executable found at " + jbangExecutable;
+            help = help +"JBang executable found at " + jbangExecutable;
          } 
 
+         help = help + "\nJava version: " + System.getProperty("java.version");
+         help = help + "\nJava vendor: " + System.getProperty("java.vendor");
+         help = help + "\nJava vendor URL: " + System.getProperty("java.vendor.url");
+         help = help + "\nJava home: " + System.getProperty("java.home");
+         help = help + "\nJava class path: " + System.getProperty("java.class.path");
+         help = help + "\nJava library path: " + System.getProperty("java.library.path");
          kernel.display(kernel.getRenderer().render(help));
          return null;
     }
