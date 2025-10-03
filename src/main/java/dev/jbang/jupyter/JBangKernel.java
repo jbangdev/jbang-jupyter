@@ -20,6 +20,7 @@ import org.dflib.jjava.kernel.JavaKernelBuilder;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 
+import jdk.jshell.EvalException;
 import jdk.jshell.JShell;
 
 /**
@@ -27,8 +28,15 @@ import jdk.jshell.JShell;
  */
 public class JBangKernel extends JavaKernel {
 
+    private final CodeEvaluator evaluator; // TODO: javakernel should expose this
+
     @Override
     public Object evalRaw(String source) {
+        if(evaluator == null) { // TODO: this happens because javakernel inits extensions that calls evals
+            return super.evalRaw(source);
+        }
+
+        source = magicParser.resolveMagics(source);
         // hook in and call jbang if seems relevant/needed
         if(source.contains("//DEPS")) { //TODO: use pattern to spot other directives
             try {
@@ -38,7 +46,7 @@ public class JBangKernel extends JavaKernel {
                 throw new RuntimeException(e);
             }
         }
-        return super.evalRaw(source);
+        return evaluator.eval(source);   
     }
 
     /**
@@ -79,6 +87,7 @@ public class JBangKernel extends JavaKernel {
                 extensionLoader,
                 extensionsEnabled,
                 errorStyler, jShell, evaluator);
+        this.evaluator = evaluator;
 
     }
 
