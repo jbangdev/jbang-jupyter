@@ -65,6 +65,7 @@ public class Main {
                 //TBD: since jbang kernel will automatically run this doesn't make much sense  .cellMagic("jbang", new JBangCellMagic())
                 .lineMagic("jbang", new JBangLineMagic())
                 .lineMagic("help", new HelpMagic())
+                .lineMagic("log", new LoggingMagic())
                 .build();
 
         kernel.becomeHandlerForConnection(connection);

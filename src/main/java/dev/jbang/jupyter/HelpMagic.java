@@ -15,10 +15,17 @@ public class HelpMagic implements LineMagic<Void, JavaKernel> {
         https://github.com/jbangdev/jbang-jupyter
 
         Available magics:
-        %jbang <scriptRef> - Load a JBang script
-        %help - Show this help
-
         """;
+
+        StringBuilder helpBuilder = new StringBuilder(help);
+        kernel.getMagicsRegistry().getCellMagicNames().forEach(magic -> {
+            helpBuilder.append("%%" + magic + "\n");
+        });
+        kernel.getMagicsRegistry().getLineMagicNames().forEach(magic -> {
+            helpBuilder.append("%" + magic + "\n");
+        });
+
+        help = helpBuilder.toString() + "\n";
 
         String jbangExecutable = JBangHelper.findJBangExecutable();
         if (jbangExecutable == null) {

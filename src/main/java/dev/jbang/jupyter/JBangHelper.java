@@ -11,11 +11,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class JBangHelper {
 
+    final static Logger logger = Logger.getLogger(JBangHelper.class.getName());
+    
     /**
      * Looks for nearest JBang executable in the following priority order:
      * 
@@ -96,6 +99,7 @@ public class JBangHelper {
             }
 
 
+            logger.info("jbang info tools output: " + output.toString());
             JsonObject json = JsonParser.parseString(output.toString()).getAsJsonObject();
 
             List<String> resolvedDependencies = new ArrayList<>();

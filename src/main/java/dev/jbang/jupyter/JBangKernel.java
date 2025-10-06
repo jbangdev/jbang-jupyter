@@ -1,8 +1,11 @@
 package dev.jbang.jupyter;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.HelpLink;
@@ -28,10 +31,13 @@ import jdk.jshell.JShell;
  */
 public class JBangKernel extends JavaKernel {
 
+    Logger logger = Logger.getLogger(JBangKernel.class.getName());
+    
     private final CodeEvaluator evaluator; // TODO: javakernel should expose this
 
     @Override
     public Object evalRaw(String source) {
+        try {
         if(evaluator == null) { // TODO: this happens because javakernel inits extensions that calls evals
             return super.evalRaw(source);
         }
@@ -41,12 +47,16 @@ public class JBangKernel extends JavaKernel {
         if(source.contains("//DEPS")) { //TODO: use pattern to spot other directives
             try {
                 List<String> deps = JBangHelper.getJBangResolvedDependencies("-", source, false);
-                addToClasspath(deps);
+                addToClasspath(String.join(File.pathSeparator,deps));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return evaluator.eval(source);   
+        return evaluator.eval(source);  
+    } catch(Exception e) {
+        logger.log(Level.SEVERE, "Error evaluating source: " + source,e);
+        throw e;
+    }
     }
 
     /**

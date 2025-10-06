@@ -4,6 +4,7 @@ import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
 import org.dflib.jjava.kernel.JavaKernel;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class JBangLineMagic implements LineMagic<Void, JavaKernel> {
 
         try {
             List<String> resolvedDependencies = JBangHelper.getJBangResolvedDependencies(scriptRef, null, true);
-            kernel.addToClasspath(resolvedDependencies);
+            kernel.addToClasspath(String.join(File.pathSeparator,resolvedDependencies));
             return null;
             // let the kernel evaluate the body after the dependencies are resolved
             // TODO: this is not right way as extensions can't give callback
