@@ -12,7 +12,11 @@ import org.dflib.jjava.jupyter.kernel.HelpLink;
 import org.dflib.jjava.jupyter.kernel.JupyterIO;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.comm.CommManager;
+import org.dflib.jjava.jupyter.kernel.display.DisplayDataRenderable;
+import org.dflib.jjava.jupyter.kernel.display.RenderContext;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
+import org.dflib.jjava.jupyter.kernel.display.common.Image;
+import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
 import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
@@ -59,6 +63,12 @@ public class JBangKernel extends JavaKernel {
     }
     }
 
+    @Override
+    public void addToClasspath(Iterable<String> paths) {
+        System.out.println("Adding to classpath: " + paths);
+        super.addToClasspath(paths);
+    }
+
     /**
      * Starts a builder for a new JJavaKernel.
      */
@@ -98,8 +108,9 @@ public class JBangKernel extends JavaKernel {
                 extensionsEnabled,
                 errorStyler, jShell, evaluator);
         this.evaluator = evaluator;
-
     }
+
+
 
     public static class JBangKernelBuilder extends JavaKernelBuilder<JBangKernelBuilder, JBangKernel> {
         private JBangKernelBuilder() {
@@ -133,10 +144,17 @@ public class JBangKernel extends JavaKernel {
                     buildCodeEvaluator(jShell, jShellExecutionControlProvider));
         }
 
+        @Override
+        protected Renderer buildRenderer() {
+            return new DelegateRenderer(super.buildRenderer());
+        }
         protected List<HelpLink> buildHelpLinks() {
             return List.of(
                     new HelpLink("JBang homepage", "https://www.jbang.dev/"),
                     new HelpLink("JJava homepage", "https://github.com/dflib/jjava"));
         }
+
     }
+
+  
 }

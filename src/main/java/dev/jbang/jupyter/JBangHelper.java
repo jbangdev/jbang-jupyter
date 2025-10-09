@@ -99,7 +99,7 @@ public class JBangHelper {
             }
 
 
-            logger.info("jbang info tools output: " + output.toString());
+            logger.fine("jbang info tools output: " + output.toString());
             JsonObject json = JsonParser.parseString(output.toString()).getAsJsonObject();
 
             List<String> resolvedDependencies = new ArrayList<>();
