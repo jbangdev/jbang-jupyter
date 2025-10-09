@@ -64,7 +64,7 @@ public class JBangKernel extends JavaKernel {
     }
 
     @Override
-    public void addToClasspath(Iterable<String> paths) {
+    public void addToClasspath(String paths) {
         System.out.println("Adding to classpath: " + paths);
         super.addToClasspath(paths);
     }
