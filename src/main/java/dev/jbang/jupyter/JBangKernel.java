@@ -3,14 +3,21 @@ package dev.jbang.jupyter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.dflib.jjava.jupyter.ExtensionLoader;
+import org.dflib.jjava.jupyter.channels.JupyterConnection;
+import org.dflib.jjava.jupyter.channels.ShellReplyEnvironment;
 import org.dflib.jjava.jupyter.kernel.HelpLink;
 import org.dflib.jjava.jupyter.kernel.JupyterIO;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
+import org.dflib.jjava.jupyter.kernel.ReplacementOptions;
 import org.dflib.jjava.jupyter.kernel.comm.CommManager;
 import org.dflib.jjava.jupyter.kernel.display.DisplayDataRenderable;
 import org.dflib.jjava.jupyter.kernel.display.RenderContext;
@@ -22,6 +29,11 @@ import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
+import org.dflib.jjava.jupyter.messages.Message;
+import org.dflib.jjava.jupyter.messages.MessageType;
+import org.dflib.jjava.jupyter.messages.reply.CompleteReply;
+import org.dflib.jjava.jupyter.messages.reply.ErrorReply;
+import org.dflib.jjava.jupyter.messages.request.CompleteRequest;
 import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.JavaKernelBuilder;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
@@ -68,6 +80,55 @@ public class JBangKernel extends JavaKernel {
         System.out.println("Adding to classpath: " + paths);
         super.addToClasspath(paths);
     }
+
+    @Override
+    public void becomeHandlerForConnection(JupyterConnection connection) {
+        super.becomeHandlerForConnection(connection);
+        connection.setHandler(MessageType.COMPLETE_REQUEST, this::handleCompleteRequest);
+    }
+
+    private void handleCompleteRequest(ShellReplyEnvironment env, Message<CompleteRequest> completeRequestMessage) {
+
+            CompleteRequest request = (CompleteRequest)completeRequestMessage.getContent();
+            env.setBusyDeferIdle();
+      
+            try {
+               ReplacementOptions options = this.complete(request.getCode(), request.getCursorPos());
+               if (options == null) {
+                  env.reply(new CompleteReply(Collections.emptyList(), request.getCursorPos(), request.getCursorPos(), Collections.emptyMap()));
+               } else {
+
+                  Map<String, Object> metadata = new HashMap<>();
+                  List<JupyterExperimentalType> experimentalTypes = new ArrayList<>();
+                 // List<JupyterExtendedMetadataEntry> extendedMetadata = new ArrayList<>();
+                  options.getReplacements().forEach(replacement -> {
+                   
+                    experimentalTypes.add(new JupyterExperimentalType(replacement, "funky type", options.getSourceStart(), options.getSourceEnd()));
+                   // metadata.put("experimental", experimentalTypes);
+                  });
+                  metadata.put("_jupyter_types_experimental", experimentalTypes);
+                  env.reply(new CompleteReply(options.getReplacements(), options.getSourceStart(), options.getSourceEnd(), Collections.emptyMap()));
+               }
+            } catch (Exception var5) {
+               env.replyError(CompleteReply.MESSAGE_TYPE.error(), ErrorReply.of(var5));
+            }
+         
+    }
+
+    record JupyterExperimentalType(
+        String text,
+        String type,
+        int start,
+        int end
+    ) {}
+
+    record JupyterExtendedMetadataEntry(
+        String text,
+        String displayText,
+        String icon,
+        String tail,
+        String deprecation
+    ) {}
 
     /**
      * Starts a builder for a new JJavaKernel.
