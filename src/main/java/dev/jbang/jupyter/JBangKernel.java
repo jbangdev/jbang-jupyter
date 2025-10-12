@@ -97,17 +97,24 @@ public class JBangKernel extends JavaKernel {
                if (options == null) {
                   env.reply(new CompleteReply(Collections.emptyList(), request.getCursorPos(), request.getCursorPos(), Collections.emptyMap()));
                } else {
-
+                    // adjust the completions to include the experimental types
+                    // for nicer combobox rendering
                   Map<String, Object> metadata = new HashMap<>();
                   List<JupyterExperimentalType> experimentalTypes = new ArrayList<>();
                  // List<JupyterExtendedMetadataEntry> extendedMetadata = new ArrayList<>();
                   options.getReplacements().forEach(replacement -> {
-                   
-                    experimentalTypes.add(new JupyterExperimentalType(replacement, "funky type", options.getSourceStart(), options.getSourceEnd()));
+                   String type = "code";
+                   // poor man type detection
+                   if(replacement.startsWith("%")) {
+                       type = "magic";
+                   } else if(replacement.endsWith("(") || replacement.endsWith("()")) {
+                       type = "function";
+                   } 
+                    experimentalTypes.add(new JupyterExperimentalType(replacement, type, options.getSourceStart(), options.getSourceEnd()));
                    // metadata.put("experimental", experimentalTypes);
                   });
                   metadata.put("_jupyter_types_experimental", experimentalTypes);
-                  env.reply(new CompleteReply(options.getReplacements(), options.getSourceStart(), options.getSourceEnd(), Collections.emptyMap()));
+                  env.reply(new CompleteReply(options.getReplacements(), options.getSourceStart(), options.getSourceEnd(), metadata));
                }
             } catch (Exception var5) {
                env.replyError(CompleteReply.MESSAGE_TYPE.error(), ErrorReply.of(var5));
