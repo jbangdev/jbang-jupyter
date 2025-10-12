@@ -68,6 +68,11 @@ public class Main {
                 .lineMagic("log", new LoggingMagic())
                 .build();
 
+        kernel.onStartup();
+
+        //TODO: should we honor IJAVA/JJAVA classpaths? probably but for now users can adjust deps manually
+        //kernel.addToClasspath(System.getProperty("java.class.path"));
+
         kernel.becomeHandlerForConnection(connection);
 
         connection.connect();
