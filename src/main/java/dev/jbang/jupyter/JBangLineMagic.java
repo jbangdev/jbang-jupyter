@@ -28,8 +28,12 @@ public class JBangLineMagic implements LineMagic<Void, JBangKernel> {
 
         Map<String, List<String>> vals = schema.parse(args);
         String scriptRef = vals.get("scriptRef").get(0);
+        String jbangExecutable = JBangHelper.findJBangExecutable();
+            if (jbangExecutable == null) {
+                throw new RuntimeException("JBang executable not found in $JBANG_HOME, $PATH, or ~/.jbang/bin. Please install JBang.");
+            }
 
-        ProcessBuilder pb = new ProcessBuilder("jbang", "build", scriptRef);
+        ProcessBuilder pb = new ProcessBuilder(jbangExecutable, "build", scriptRef);
         pb.redirectErrorStream(false);
         Process process = pb.start();
 
