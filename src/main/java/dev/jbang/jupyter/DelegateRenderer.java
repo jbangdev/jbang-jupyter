@@ -3,7 +3,6 @@ package dev.jbang.jupyter;
 import java.util.Map;
 
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
-import org.dflib.jjava.jupyter.kernel.display.RenderContext;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
 import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
 

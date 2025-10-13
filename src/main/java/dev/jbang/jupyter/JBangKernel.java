@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
 import org.dflib.jjava.jupyter.channels.ShellReplyEnvironment;
 import org.dflib.jjava.jupyter.kernel.HelpLink;
@@ -19,11 +18,7 @@ import org.dflib.jjava.jupyter.kernel.JupyterIO;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.ReplacementOptions;
 import org.dflib.jjava.jupyter.kernel.comm.CommManager;
-import org.dflib.jjava.jupyter.kernel.display.DisplayDataRenderable;
-import org.dflib.jjava.jupyter.kernel.display.RenderContext;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
-import org.dflib.jjava.jupyter.kernel.display.common.Image;
-import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
 import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
@@ -39,7 +34,6 @@ import org.dflib.jjava.kernel.JavaKernelBuilder;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 
-import jdk.jshell.EvalException;
 import jdk.jshell.JShell;
 
 /**
@@ -87,7 +81,7 @@ public class JBangKernel extends JavaKernel {
         connection.setHandler(MessageType.COMPLETE_REQUEST, this::handleCompleteRequest);
     }
 
-    private void handleCompleteRequest(ShellReplyEnvironment env, Message<CompleteRequest> completeRequestMessage) {
+    protected void handleCompleteRequest(ShellReplyEnvironment env, Message<CompleteRequest> completeRequestMessage) {
 
             CompleteRequest request = (CompleteRequest)completeRequestMessage.getContent();
             env.setBusyDeferIdle();
@@ -155,7 +149,6 @@ public class JBangKernel extends JavaKernel {
             Renderer renderer,
             MagicParser magicParser,
             MagicsRegistry magicsRegistry,
-            ExtensionLoader extensionLoader,
             boolean extensionsEnabled,
             StringStyler errorStyler,
             JShell jShell,
@@ -172,7 +165,6 @@ public class JBangKernel extends JavaKernel {
                 renderer,
                 magicParser,
                 magicsRegistry,
-                extensionLoader,
                 extensionsEnabled,
                 errorStyler, jShell, evaluator);
         this.evaluator = evaluator;
@@ -205,7 +197,6 @@ public class JBangKernel extends JavaKernel {
                     buildRenderer(),
                     buildMagicParser(magicTranspiler),
                     buildMagicsRegistry(),
-                    buildExtensionLoader(),
                     buildExtensionsEnabled(),
                     buildErrorStyler(),
                     jShell,
