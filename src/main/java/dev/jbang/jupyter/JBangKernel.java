@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -34,6 +36,7 @@ import org.dflib.jjava.kernel.JavaKernelBuilder;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 
+import dev.jbang.jupyter.JBangHelper.JBangInfo;
 import jdk.jshell.JShell;
 
 /**
@@ -42,37 +45,58 @@ import jdk.jshell.JShell;
 public class JBangKernel extends JavaKernel {
 
     Logger logger = Logger.getLogger(JBangKernel.class.getName());
-    
+
     private final CodeEvaluator evaluator; // TODO: javakernel should expose this
 
     @Override
     public Object evalRaw(String source) {
         try {
-        if(evaluator == null) { // TODO: this happens because javakernel inits extensions that calls evals
-            return super.evalRaw(source);
-        }
-
-        source = magicParser.resolveMagics(source);
-        // hook in and call jbang if seems relevant/needed
-        if(source.contains("//DEPS")) { //TODO: use pattern to spot other directives
-            try {
-                List<String> deps = JBangHelper.getJBangResolvedDependencies("-", source, false);
-                addToClasspath(String.join(File.pathSeparator,deps));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if (evaluator == null) { // TODO: this happens because javakernel inits extensions that calls evals
+                return super.evalRaw(source);
             }
+
+            source = magicParser.resolveMagics(source);
+            // hook in and call jbang if seems relevant/needed
+            if (source.contains("//DEPS")) { // TODO: use pattern to spot other directives
+                try {
+                    JBangInfo jbangInfo = JBangHelper.getJBangResolvedDependencies("-", source, false);
+                    addToClasspath(jbangInfo);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return evaluator.eval(source);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error evaluating source: " + source, e);
+            throw e;
         }
-        return evaluator.eval(source);  
-    } catch(Exception e) {
-        logger.log(Level.SEVERE, "Error evaluating source: " + source,e);
-        throw e;
-    }
     }
 
+    LinkedHashSet<String> classpath = new LinkedHashSet<>(Arrays.asList(System.getProperty("java.class.path").split(File.pathSeparator)));
+
+    /**
+     * Add to classpath while avoiding duplicates
+     * to not have classpath constant growing or reloaded for no reason.
+     */
     @Override
     public void addToClasspath(String paths) {
-        System.out.println("Adding to classpath: " + paths);
-        super.addToClasspath(paths);
+        String cp = "";
+
+        for (String path : paths.split(File.pathSeparator)) {
+            if (classpath.contains(path)) {
+                continue;
+            }
+            classpath.add(path);
+            if (cp.isEmpty()) {
+                cp = path;
+            } else {
+                cp += File.pathSeparator + path;
+            }
+        }
+
+        if (!cp.isEmpty()) {
+            super.addToClasspath(paths);
+        }
     }
 
     @Override
@@ -83,53 +107,56 @@ public class JBangKernel extends JavaKernel {
 
     protected void handleCompleteRequest(ShellReplyEnvironment env, Message<CompleteRequest> completeRequestMessage) {
 
-            CompleteRequest request = (CompleteRequest)completeRequestMessage.getContent();
-            env.setBusyDeferIdle();
-      
-            try {
-               ReplacementOptions options = this.complete(request.getCode(), request.getCursorPos());
-               if (options == null) {
-                  env.reply(new CompleteReply(Collections.emptyList(), request.getCursorPos(), request.getCursorPos(), Collections.emptyMap()));
-               } else {
-                    // adjust the completions to include the experimental types
-                    // for nicer combobox rendering
-                  Map<String, Object> metadata = new HashMap<>();
-                  List<JupyterExperimentalType> experimentalTypes = new ArrayList<>();
-                 // List<JupyterExtendedMetadataEntry> extendedMetadata = new ArrayList<>();
-                  options.getReplacements().forEach(replacement -> {
-                   String type = "code";
-                   // poor man type detection
-                   if(replacement.startsWith("%")) {
-                       type = "magic";
-                   } else if(replacement.endsWith("(") || replacement.endsWith("()")) {
-                       type = "function";
-                   } 
-                    experimentalTypes.add(new JupyterExperimentalType(replacement, type, options.getSourceStart(), options.getSourceEnd()));
-                   // metadata.put("experimental", experimentalTypes);
-                  });
-                  metadata.put("_jupyter_types_experimental", experimentalTypes);
-                  env.reply(new CompleteReply(options.getReplacements(), options.getSourceStart(), options.getSourceEnd(), metadata));
-               }
-            } catch (Exception var5) {
-               env.replyError(CompleteReply.MESSAGE_TYPE.error(), ErrorReply.of(var5));
+        CompleteRequest request = (CompleteRequest) completeRequestMessage.getContent();
+        env.setBusyDeferIdle();
+
+        try {
+            ReplacementOptions options = this.complete(request.getCode(), request.getCursorPos());
+            if (options == null) {
+                env.reply(new CompleteReply(Collections.emptyList(), request.getCursorPos(), request.getCursorPos(),
+                        Collections.emptyMap()));
+            } else {
+                // adjust the completions to include the experimental types
+                // for nicer combobox rendering
+                Map<String, Object> metadata = new HashMap<>();
+                List<JupyterExperimentalType> experimentalTypes = new ArrayList<>();
+                // List<JupyterExtendedMetadataEntry> extendedMetadata = new ArrayList<>();
+                options.getReplacements().forEach(replacement -> {
+                    String type = "code";
+                    // poor man type detection
+                    if (replacement.startsWith("%")) {
+                        type = "magic";
+                    } else if (replacement.endsWith("(") || replacement.endsWith("()")) {
+                        type = "function";
+                    }
+                    experimentalTypes.add(new JupyterExperimentalType(replacement, type, options.getSourceStart(),
+                            options.getSourceEnd()));
+                    // metadata.put("experimental", experimentalTypes);
+                });
+                metadata.put("_jupyter_types_experimental", experimentalTypes);
+                env.reply(new CompleteReply(options.getReplacements(), options.getSourceStart(), options.getSourceEnd(),
+                        metadata));
             }
-         
+        } catch (Exception var5) {
+            env.replyError(CompleteReply.MESSAGE_TYPE.error(), ErrorReply.of(var5));
+        }
+
     }
 
     record JupyterExperimentalType(
-        String text,
-        String type,
-        int start,
-        int end
-    ) {}
+            String text,
+            String type,
+            int start,
+            int end) {
+    }
 
     record JupyterExtendedMetadataEntry(
-        String text,
-        String displayText,
-        String icon,
-        String tail,
-        String deprecation
-    ) {}
+            String text,
+            String displayText,
+            String icon,
+            String tail,
+            String deprecation) {
+    }
 
     /**
      * Starts a builder for a new JJavaKernel.
@@ -168,9 +195,9 @@ public class JBangKernel extends JavaKernel {
                 extensionsEnabled,
                 errorStyler, jShell, evaluator);
         this.evaluator = evaluator;
+
+        JBangInfo.registerAllRenderers(renderer);
     }
-
-
 
     public static class JBangKernelBuilder extends JavaKernelBuilder<JBangKernelBuilder, JBangKernel> {
         private JBangKernelBuilder() {
@@ -207,6 +234,7 @@ public class JBangKernel extends JavaKernel {
         protected Renderer buildRenderer() {
             return new DelegateRenderer(super.buildRenderer());
         }
+
         protected List<HelpLink> buildHelpLinks() {
             return List.of(
                     new HelpLink("JBang homepage", "https://www.jbang.dev/"),
@@ -215,5 +243,11 @@ public class JBangKernel extends JavaKernel {
 
     }
 
-  
+    public void addToClasspath(JBangInfo jbangInfo) {
+        jbangInfo.resolve(classpath);
+        display(getRenderer().render(jbangInfo));
+        List<String> resolvedDependencies = jbangInfo.resolvedDependencies;
+        addToClasspath(String.join(File.pathSeparator,resolvedDependencies));
+    }
+
 }

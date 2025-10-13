@@ -3,6 +3,8 @@ package dev.jbang.jupyter;
 import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
 import org.dflib.jjava.kernel.JavaKernel;
 
+import dev.jbang.jupyter.JBangHelper.JBangInfo;
+
 import java.io.File;
 import java.util.List;
 
@@ -15,7 +17,8 @@ public class JBangCellMagic implements CellMagic<Void, JavaKernel> {
 
     public Void eval(JavaKernel kernel, List<String> args, String body) throws Exception {
         try {
-            List<String> resolvedDependencies = JBangHelper.getJBangResolvedDependencies("-", body,false);
+            JBangInfo jbangInfo = JBangHelper.getJBangResolvedDependencies("-", body,false);
+            List<String> resolvedDependencies = jbangInfo.resolvedDependencies;
             kernel.addToClasspath(String.join(File.pathSeparator,resolvedDependencies));
             // let the kernel evaluate the body after the dependencies are resolved
             // TODO: this is not right way as extensions can't give callback

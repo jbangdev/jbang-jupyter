@@ -4,6 +4,8 @@ import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
 import org.dflib.jjava.kernel.JavaKernel;
 
+import dev.jbang.jupyter.JBangHelper.JBangInfo;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -12,10 +14,10 @@ import java.util.Map;
 /**
  * Builds a JBang script and adds the resolved dependencies to the classpath.
  */
-public class JBangLineMagic implements LineMagic<Void, JavaKernel> {
+public class JBangLineMagic implements LineMagic<Void, JBangKernel> {
 
 
-    public Void eval(JavaKernel kernel, List<String> args) throws IOException, InterruptedException {
+    public Void eval(JBangKernel kernel, List<String> args) throws IOException, InterruptedException {
         if (args.isEmpty()) {
             throw new IllegalArgumentException("Loading from JBang requires at least a path to a JBang script reference.");
         }
@@ -37,8 +39,8 @@ public class JBangLineMagic implements LineMagic<Void, JavaKernel> {
         }
 
         try {
-            List<String> resolvedDependencies = JBangHelper.getJBangResolvedDependencies(scriptRef, null, true);
-            kernel.addToClasspath(String.join(File.pathSeparator,resolvedDependencies));
+            JBangInfo jbangInfo = JBangHelper.getJBangResolvedDependencies(scriptRef, null, true);
+            kernel.addToClasspath(jbangInfo);
             return null;
             // let the kernel evaluate the body after the dependencies are resolved
             // TODO: this is not right way as extensions can't give callback
