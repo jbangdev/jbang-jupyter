@@ -40,10 +40,10 @@
                             <shadedClassifierName>fatjar</shadedClassifierName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
-                        <relocation>
+                        <!--<relocation> cannot shade this as then integrations apis does not work
                             <pattern>org.dflib</pattern>
                             <shadedPattern>dev.jbang.jupyter.shaded.org.dflib</shadedPattern>
-                        </relocation>
+                        </relocation> -->
                         <relocation>
                             <pattern>com.google</pattern>
                             <shadedPattern>dev.jbang.jupyter.shaded.com.google</shadedPattern>
