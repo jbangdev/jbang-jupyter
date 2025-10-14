@@ -208,11 +208,15 @@ public class JBangKernel extends JavaKernel {
 
             String name = buildName();
             Charset jupyterEncoding = buildJupyterIOEncoding();
+            //TODO: have flag for this?
+            compilerOpts.addAll(Arrays.asList("--enable-preview", "--source",""+Runtime.version().feature()));
+
             JJavaExecutionControlProvider jShellExecutionControlProvider = buildJShellExecControlProvider(name);
             JShell jShell = buildJShell(jShellExecutionControlProvider);
             LanguageInfo langInfo = buildLanguageInfo();
             MagicTranspiler magicTranspiler = buildMagicTranspiler();
 
+            
             return new JBangKernel(
                     name,
                     buildVersion(),
@@ -240,6 +244,24 @@ public class JBangKernel extends JavaKernel {
                     new HelpLink("JBang homepage", "https://www.jbang.dev/"),
                     new HelpLink("JJava homepage", "https://github.com/dflib/jjava"));
         }
+
+        
+        protected JShell buildJShell(JJavaExecutionControlProvider jShellExecControlProvider) {
+            Map<String, String> execControlParams = new HashMap();
+            execControlParams.put("registration-id", this.jShellExecControlID);
+            if (this.timeout != null) {
+               execControlParams.put("timeout", this.timeout);
+            }
+      
+            return JShell.builder()
+                    .out(System.out)
+                    .err(System.err)
+                    .in(System.in)
+                    .executionEngine(jShellExecControlProvider, execControlParams)
+                    .compilerOptions((String[])this.compilerOpts.toArray(new String[0]))
+                    .remoteVMOptions("--enable-preview")
+                    .build();
+         }
 
     }
 
